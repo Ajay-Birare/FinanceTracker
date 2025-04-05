@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finance Tracker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        background: #f8f9fa;
+      }
+      .sidebar {
+        width: 280px;
+        background: #343a40;
+        color: white;
+        padding: 20px;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .main-content {
+        flex-grow: 1;
+        padding: 20px;
+        background: #ffffff;
+        border-left: 2px solid #dee2e6;
+      }
+      .headbox {
+        font-size: 22px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+      .history h4 {
+        border-bottom: 2px solid white;
+        padding-bottom: 5px;
+      }
+      .history p {
+        margin: 5px 0;
+        font-size: 14px;
+      }
+      .exceeded {
+        color: red;
+        font-weight: bold;
+      }
+      .month-box {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 10px;
+        background: #007bff;
+        color: white;
+        margin-top: 10px;
+        display: block;
+        border-radius: 5px;
+      }
+      .date-box {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 5px;
+        border-left: 4px solid #007bff;
+        margin-left: 15px;
+        margin-top: 5px;
+        display: block;
+        color: #343a40;
+        color: white;
+      }
+      .hidden {
+        display: none;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        margin-top: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <h3>History</h3>
+      <div class="history">
+        <h4>Today's Expenses</h4>
+        <ul id="todayExpenseList"></ul>
+        <p>Total Spent Today: <span id="totalSpentToday">0</span> Rs</p>
+      </div>
+      <div class="history">
+        <h4>Monthly History</h4>
+        <div id="monthlyHistory"></div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <h2>Finance Tracker</h2>
+      <p>Fixed Budget: <span id="budget">5000</span> Rs</p>
+      <p>Remaining Amount: <span id="remaining">5000</span> Rs</p>
+      <p>Remaining Days: <span id="days"></span></p>
+      <p>Suggested Daily Spend: <span id="suggestedSpend"></span> Rs</p>
+      <p id="exceededAmount" class="exceeded hidden">Exceeded Amount: 0 Rs</p>
+      <input type="number" id="amount" placeholder="Enter amount" />
+      <input type="text" id="reason" placeholder="Enter reason" />
+      <button onclick="addExpense()">Add Expense</button>
+    </div>
+
+    <!-- this code storing data but not showing but almost near -->
+    <script>
+      let budget = 5000;
+      let remaining = budget;
+      const today = new Date();
+      const daysInMonth = new Date(
+        today.getFullYear(),
+        today.getMonth() + 1,
+        0
+      ).getDate();
+      let remainingDays = daysInMonth - today.getDate();
+      let suggestedDaily = remaining / remainingDays;
+      let dailySpent = 0;
+      let monthlyHistory = {};
+      let todayExpenses = [];
+
+      // this one is original
+
+      // Load data from localStorage
+      // if (localStorage.getItem("budget")) {
+      //   budget = parseInt(localStorage.getItem("budget"));
+      //   remaining = parseInt(localStorage.getItem("remaining"));
+      //   monthlyHistory = JSON.parse(localStorage.getItem("monthlyHistory"));
+      //   todayExpenses = JSON.parse(localStorage.getItem("todayExpenses"));
+      // }
+
+      // another changes made here
+
+      // Load data from localStorage 2X
+      if (localStorage.getItem("budget")) {
+        budget = parseInt(localStorage.getItem("budget"));
+        remaining = parseInt(localStorage.getItem("remaining"));
+        monthlyHistory = JSON.parse(localStorage.getItem("monthlyHistory"));
+        todayExpenses = JSON.parse(localStorage.getItem("todayExpenses"));
+        dailySpent = todayExpenses.reduce(
+          (acc, expense) => acc + expense.amount,
+          0
+        );
+      }
+
+      document.getElementById("days").innerText = remainingDays;
+      document.getElementById("suggestedSpend").innerText =
+        suggestedDaily.toFixed(2);
+      document.getElementById("budget").innerText = budget;
+      document.getElementById("remaining").innerText = remaining;
+
+      // Display today's expenses
+      let todayExpenseList = document.getElementById("todayExpenseList");
+      let totalSpentToday = 0;
+      todayExpenses.forEach((expense) => {
+        let listItem = document.createElement("li");
+        listItem.innerText = `${expense.reason}: ${expense.amount} Rs`;
+        todayExpenseList.appendChild(listItem);
+        totalSpentToday += expense.amount;
+      });
+      document.getElementById("totalSpentToday").innerText = totalSpentToday;
+
+      // Display monthly history
+      updateMonthlyHistory();
+
+      function addExpense() {
+        let amount = parseInt(document.getElementById("amount").value);
+        let reason = document.getElementById("reason").value;
+        let currentDate = `${String(today.getDate()).padStart(2, "0")}-${String(
+          today.getMonth() + 1
+        ).padStart(2, "0")}-${today.getFullYear()}`;
+        let currentMonth = `${today.toLocaleString("default", {
+          month: "long",
+        })} ${today.getFullYear()}`;
+
+        if (!amount || !reason) {
+          alert("Please enter valid amount and reason");
+          return;
+        }
+
+        remaining -= amount;
+        dailySpent += amount;
+
+        // Update localStorage
+        localStorage.setItem("budget", budget);
+        localStorage.setItem("remaining", remaining);
+
+        // Update today's expenses
+        todayExpenses.push({ amount, reason });
+        localStorage.setItem("todayExpenses", JSON.stringify(todayExpenses));
+
+        // Update monthly history
+        if (!monthlyHistory[currentMonth]) {
+          monthlyHistory[currentMonth] = {};
+        }
+
+        if (!monthlyHistory[currentMonth][currentDate]) {
+          monthlyHistory[currentMonth][currentDate] = {
+            expenses: [],
+            total: 0,
+          };
+        }
+
+        monthlyHistory[currentMonth][currentDate].expenses.push({
+          amount,
+          reason,
+        });
+        monthlyHistory[currentMonth][currentDate].total += amount;
+
+        localStorage.setItem("monthlyHistory", JSON.stringify(monthlyHistory));
+
+        document.getElementById("remaining").innerText = remaining;
+        document.getElementById("suggestedSpend").innerText = (
+          remaining / remainingDays
+        ).toFixed(2);
+        document.getElementById("totalSpentToday").innerText = dailySpent;
+
+        let listItem = document.createElement("li");
+        listItem.innerText = `${reason}: ${amount} Rs`;
+        todayExpenseList.appendChild(listItem);
+
+        updateMonthlyHistory();
+
+        document.getElementById("amount").value = "";
+        document.getElementById("reason").value = "";
+      }
+
+      function updateMonthlyHistory() {
+        let historyContainer = document.getElementById("monthlyHistory");
+        historyContainer.innerHTML = "";
+
+        for (let month in monthlyHistory) {
+          let monthBox = document.createElement("div");
+          monthBox.classList.add("month-box");
+          monthBox.innerText = month;
+          monthBox.onclick = function () {
+            toggleMonthHistory(month);
+          };
+
+          let monthList = document.createElement("div");
+          monthList.classList.add("hidden");
+          monthList.id = `month-${month}`;
+
+          for (let date in monthlyHistory[month]) {
+            let dateBox = document.createElement("div");
+            dateBox.classList.add("date-box");
+            dateBox.innerText = `${date} (Total: ${monthlyHistory[month][date].total} Rs)`;
+            dateBox.onclick = function () {
+              toggleHistory(month, date);
+            };
+
+            let historyList = document.createElement("ul");
+            historyList.classList.add("hidden");
+            historyList.id = `history-${month}-${date}`;
+
+            monthlyHistory[month][date].expenses.forEach((expense) => {
+              let entryItem = document.createElement("li");
+              entryItem.innerText = `${expense.reason}: ${expense.amount} Rs`;
+              historyList.appendChild(entryItem);
+            });
+
+            monthList.appendChild(dateBox);
+            monthList.appendChild(historyList);
+          }
+
+          historyContainer.appendChild(monthBox);
+          historyContainer.appendChild(monthList);
+        }
+      }
+
+      function toggleMonthHistory(month) {
+        document.getElementById(`month-${month}`).classList.toggle("hidden");
+      }
+
+      function toggleHistory(month, date) {
+        document
+          .getElementById(`history-${month}-${date}`)
+          .classList.toggle("hidden");
+      }
+    </script>
+  </body>
+</html>
+
+<!--
+ here what to add
+
+ - month total data 
+ April 2025 toatal amount used like this 
+
+  - also add the border the date wise data
+  -->
