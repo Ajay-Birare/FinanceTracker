@@ -94,6 +94,7 @@
     </div>
 
     <div class="main-content">
+      <h1 style="background-color: red">features Branch</h1>
       <h2>Finance Tracker</h2>
       <p>Fixed Budget: <span id="budget">5000</span> Rs</p>
       <p>Remaining Amount: <span id="remaining">5000</span> Rs</p>
@@ -227,6 +228,52 @@
         document.getElementById("reason").value = "";
       }
 
+      // this one is original
+      // function updateMonthlyHistory() {
+      //   let historyContainer = document.getElementById("monthlyHistory");
+      //   historyContainer.innerHTML = "";
+
+      //   for (let month in monthlyHistory) {
+      //     let monthBox = document.createElement("div");
+      //     monthBox.classList.add("month-box");
+      //     monthBox.innerText = month;
+      //     monthBox.onclick = function () {
+      //       toggleMonthHistory(month);
+      //     };
+
+      //     let monthList = document.createElement("div");
+      //     monthList.classList.add("hidden");
+      //     monthList.id = `month-${month}`;
+
+      //     for (let date in monthlyHistory[month]) {
+      //       let dateBox = document.createElement("div");
+      //       dateBox.classList.add("date-box");
+      //       dateBox.innerText = `${date} (Total: ${monthlyHistory[month][date].total} Rs)`;
+      //       dateBox.onclick = function () {
+      //         toggleHistory(month, date);
+      //       };
+
+      //       let historyList = document.createElement("ul");
+      //       historyList.classList.add("hidden");
+      //       historyList.id = `history-${month}-${date}`;
+
+      //       monthlyHistory[month][date].expenses.forEach((expense) => {
+      //         let entryItem = document.createElement("li");
+      //         entryItem.innerText = `${expense.reason}: ${expense.amount} Rs`;
+      //         historyList.appendChild(entryItem);
+      //       });
+
+      //       monthList.appendChild(dateBox);
+      //       monthList.appendChild(historyList);
+      //     }
+
+      //     historyContainer.appendChild(monthBox);
+      //     historyContainer.appendChild(monthList);
+      //   }
+      // }
+
+      // this one is another features updatemonth hostriy
+
       function updateMonthlyHistory() {
         let historyContainer = document.getElementById("monthlyHistory");
         historyContainer.innerHTML = "";
@@ -234,7 +281,13 @@
         for (let month in monthlyHistory) {
           let monthBox = document.createElement("div");
           monthBox.classList.add("month-box");
-          monthBox.innerText = month;
+
+          let monthTotal = 0;
+          for (let date in monthlyHistory[month]) {
+            monthTotal += monthlyHistory[month][date].total;
+          }
+
+          monthBox.innerText = `${month} (Total: ${monthTotal} Rs)`;
           monthBox.onclick = function () {
             toggleMonthHistory(month);
           };
